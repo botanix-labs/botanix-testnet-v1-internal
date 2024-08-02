@@ -1,0 +1,61 @@
+version: '3.7'
+services:
+  bitcoin-core:
+    env_file:
+      - .bitcoin.env
+    image: ruimarinho/bitcoin-core:latest
+    hostname: bitcoin-core
+    container_name: bitcoin-core
+    command:
+      - -printtoconsole
+      - -signet=1
+      - -txindex=1
+      - -server=1
+      - -rpcport=38332
+      - -rpcuser=${BITCOIND_USER}
+      - -rpcpassword=${BITCOIND_PASS}
+      - -rpcbind=0.0.0.0
+      - -rpcallowip=0.0.0.0/0
+      - -blockfilterindex=1
+      - -fallbackfee=0.00005
+    volumes:
+      - ./btc:/home/bitcoin/.bitcoin
+      - ./bitcoin.conf:/home/bitcoin/.bitcoin/bitcoin.conf
+    ports:
+      - 38332:38332
+      - 38333:38333
+      - 38334:38334
+
+  poa-node-rpc:
+    env_file:
+      - .bitcoin.env
+    container_name: botanix-poa-node-rpc
+    image:  us-central1-docker.pkg.dev/botanix-391913/botanix-testnet-node-v1/botanix-poa-node
+    command:
+      - poa
+      - --federation-config-path=/reth/botanix_testnet/chain.toml
+      - --datadir=/reth/botanix_testnet
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=admin,debug,eth,net,trace,txpool,web3,rpc
+      - --http.corsdomain=*
+      - -vvv
+      - --bitcoind.url=http://bitcoin-core:38332
+      - --bitcoind.username=${BITCOIND_USER}
+      - --bitcoind.password=${BITCOIND_PASS}
+      - --p2p-secret-key=/reth/botanix_testnet/discovery-secret
+      - --port=30303
+      - --btc-network=signet
+      - --metrics=0.0.0.0:9001
+      - --ipcdisable
+    ports:
+      - 8545:8545
+      - 8546:8546
+      - 9001:9001
+      - 30303:30303
+    depends_on:
+      - bitcoin-core
+    volumes:
+      - ./poa-node-rpc:/reth/botanix_testnet:rw
+    restart: on-failure
