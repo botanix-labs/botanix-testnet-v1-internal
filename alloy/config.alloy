@@ -7,7 +7,7 @@ discovery.relabel "docker" {
 
     rule {
         source_labels = ["__meta_docker_container_name"]
-        target_label  = "botanix-federation-rpc-member"
+        target_label  = "botanix_federation_rpc_member"
 	    action        = "replace"
     }
 
