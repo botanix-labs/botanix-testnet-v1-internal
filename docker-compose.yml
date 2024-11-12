@@ -1,36 +1,10 @@
 version: '3.7'
 services:
-  bitcoin-core:
-    env_file:
-      - .bitcoin.env
-    image: ruimarinho/bitcoin-core:latest
-    hostname: bitcoin-core
-    container_name: bitcoin-core
-    command:
-      - -printtoconsole
-      - -signet=1
-      - -txindex=1
-      - -server=1
-      - -rpcport=38332
-      - -rpcuser=${BITCOIND_USER}
-      - -rpcpassword=${BITCOIND_PASS}
-      - -rpcbind=0.0.0.0
-      - -rpcallowip=0.0.0.0/0
-      - -blockfilterindex=1
-      - -fallbackfee=0.00005
-    volumes:
-      - ./btc:/home/bitcoin/.bitcoin
-      - ./bitcoin.conf:/home/bitcoin/.bitcoin/bitcoin.conf
-    ports:
-      - 38332:38332
-      - 38333:38333
-      - 38334:38334
-
   poa-node-rpc:
     env_file:
       - .bitcoin.env
-    container_name: botanix-poa-node-rpc
-    image:  us-central1-docker.pkg.dev/botanix-391913/botanix-testnet-node-v1/botanix-poa-node
+    container_name: poa-node-rpc
+    image: us-central1-docker.pkg.dev/botanix-391913/botanix-testnet-node-v1/botanix-poa-node
     command:
       - poa
       - --federation-config-path=/reth/botanix_testnet/chain.toml
@@ -38,10 +12,13 @@ services:
       - --http
       - --http.addr=0.0.0.0
       - --http.port=8545
-      - --http.api=admin,debug,eth,net,trace,txpool,web3,rpc
+      - --http.api=debug,eth,net,trace,txpool,web3,rpc
       - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
       - -vvv
-      - --bitcoind.url=http://bitcoin-core:38332
+      - --bitcoind.url=${BITCOIND_HOST}
       - --bitcoind.username=${BITCOIND_USER}
       - --bitcoind.password=${BITCOIND_PASS}
       - --p2p-secret-key=/reth/botanix_testnet/discovery-secret
@@ -49,28 +26,34 @@ services:
       - --btc-network=signet
       - --metrics=0.0.0.0:9001
       - --ipcdisable
+      - --abci-port=26658
+      - --abci-host=0.0.0.0
+      - --cometbft-rpc-port=8888
+      - --cometbft-rpc-host=consensus-node
     ports:
       - 8545:8545
       - 8546:8546
       - 9001:9001
       - 30303:30303
-    depends_on:
-      - bitcoin-core
+      - 26658:26658
+      - 8888:8888
     volumes:
-      - ./poa-node-rpc:/reth/botanix_testnet:rw
+      - ./poa-rpc:/reth/botanix_testnet:rw
     restart: on-failure
 
-  alloy:
-    image: grafana/alloy:latest
-    command:
-      - run
-      - --server.http.listen-addr=0.0.0.0:12345
-      - --storage.path=/var/lib/alloy/data
-      - /etc/alloy/config.alloy
+  consensus-node:
+    container_name: consensus-node
+    image: us-central1-docker.pkg.dev/botanix-391913/botanix-testnet-cometbft/botanix-testnet-cometft:v4
     ports:
-      - 12345:12345
+        - 26656:26656
+        - 26657:26657
+        - 26660:26660
     volumes:
-      - ./alloydata:/var/lib/alloy/data
-      - ./alloy:/etc/alloy/
-      - /etc/hostname:/etc/hostname:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+        - ./consensus-node:/cometbft:rw
+    restart: on-failure
+    environment:
+        - ALLOW_DUPLICATE_IP=TRUE
+        - LOG_LEVEL=DEBUG
+        - NODE_NAME=poa-node-rpc
+        - MONIKER=botanix-consensus-node
+        - PERSISTENT_PEERS=2561602572b54dbdcf44b02157ab62717c09d895@34.35.52.165:26656, dbd6bec8f89ec52232280d92f5b67069c5344095@35.201.136.224:26656, 45aabbb31b04257a86172e7002d25b2e923b896c@34.79.189.111:26656

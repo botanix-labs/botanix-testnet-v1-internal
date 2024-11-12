@@ -1,0 +1,63 @@
+{
+    "genesis_time": "2024-09-13T14:45:36.286745394Z",
+    "chain_id": "3636",
+    "initial_height": "0",
+    "consensus_params": {
+      "block": {
+        "max_bytes": "4194304",
+        "max_gas": "-1"
+      },
+      "evidence": {
+        "max_age_num_blocks": "100000",
+        "max_age_duration": "172800000000000",
+        "max_bytes": "1048576"
+      },
+      "validator": {
+        "pub_key_types": [
+          "secp256k1"
+        ]
+      },
+      "version": {
+        "app": "0"
+      },
+      "synchrony": {
+        "precision": "500000000",
+        "message_delay": "2000000000"
+      },
+      "feature": {
+        "vote_extensions_enable_height": "0",
+        "pbts_enable_height": "1"
+      }
+    },
+    "validators": [
+      {
+        "address": "85FF04D7785BEEAAD6E508828B5C9A22262FD98E",
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "A6y9PbcGR/PmWF/QS2cwo05trYtT9rgGi9Fhj4htfA29"
+        },
+        "power": "10",
+        "name": "testnet-node-europe-west1-001-cometbft-node"
+      },
+      {
+        "address": "886CE36C8EB6762A4B3C8EFBE91FB92FC65A85EC",
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "Aw7Q3lOWaSd7+9RGaDzYPLUg3Q0ZlgBCOkIuaUaDa4Mp"
+        },
+        "power": "10",
+        "name": "testnet-node-africa-south1-001-cometbft-node"
+      },
+      
+      {
+        "address": "8B4621FFE83A4A18FB4358BD77B39499CDAEEB13",
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "A+f5DDtuVj4r0TrGIO7BxL7zUPT9OrMHhpwPCGrM4ChN"      
+        },
+        "power": "10",
+        "name": "testnet-node-asia-east1-001-cometbft-node-3"
+      }
+  ],
+  "app_hash": ""
+}
