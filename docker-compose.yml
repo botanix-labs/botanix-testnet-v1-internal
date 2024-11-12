@@ -12,8 +12,11 @@ services:
       - --http
       - --http.addr=0.0.0.0
       - --http.port=8545
-      - --http.api=admin,debug,eth,net,trace,txpool,web3,rpc
+      - --http.api=debug,eth,net,trace,txpool,web3,rpc
       - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
       - -vvv
       - --bitcoind.url=${BITCOIND_HOST}
       - --bitcoind.username=${BITCOIND_USER}
@@ -54,21 +57,3 @@ services:
         - NODE_NAME=poa-node-rpc
         - MONIKER=botanix-consensus-node
         - PERSISTENT_PEERS=2561602572b54dbdcf44b02157ab62717c09d895@34.35.52.165:26656, dbd6bec8f89ec52232280d92f5b67069c5344095@35.201.136.224:26656, 45aabbb31b04257a86172e7002d25b2e923b896c@34.79.189.111:26656
-
-  alloy:
-    container_name: botanix-alloy
-    image: grafana/alloy:latest
-    command:
-      - run
-      - --server.http.listen-addr=0.0.0.0:12345
-      - --storage.path=/var/lib/alloy/data
-      - /etc/alloy/config.alloy
-    ports:
-      - 12345:12345
-    volumes:
-      - /etc/hostname:/etc/hostname:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./alloy/alloydata:/var/lib/alloy/data
-      - ./alloy:/etc/alloy/
-    restart: on-failure
-    user: root
