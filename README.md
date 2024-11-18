@@ -71,6 +71,9 @@ Before you begin, ensure you have the following installed:
 git clone https://github.com/botanix-labs/botanix-testnet-v1-internal.git
 cd botanix-testnet-v1-internal
 
+## Start the mutiny bitcoind instance and allow to sync fully 
+docker-compose --env-file .bitcoin.env -f mutiny.docker-compose.yml up -d 
+
 ## Start the services
 make start-testnet-rpc
 
