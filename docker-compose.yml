@@ -38,7 +38,7 @@ services:
       - 26658:26658
       - 8888:8888
     volumes:
-      - ./poa-rpc:/reth/botanix_testnet:rw
+      - ./poa-node-rpc:/reth/botanix_testnet:rw
     restart: on-failure
 
   consensus-node:

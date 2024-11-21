@@ -74,6 +74,10 @@ cd botanix-testnet-v1-internal
 ## Start the mutiny bitcoind instance and allow to sync fully 
 docker-compose --env-file .bitcoin.env -f mutiny.docker-compose.yml up -d 
 
+## (Optional) Download a snapshot of the Reth and Comet database
+## For instructions see below "Setup Testnet With CAAS".
+## This step is optional but will greatly reduce the syncing times as one only needs to sync the blocks of since midnight.
+
 ## Start the services
 make start-testnet-rpc
 
@@ -90,23 +94,29 @@ We use LZ4 to compress the databases and store them in GCP bucket.
 - tar 
 
 ### Steps
-- Download the reth and cometbft snapshots with
+
+> **Note**
+> In the following steps, you will have to replace the date at the end of the files with the date of the snapshot that you want. 
+> The latest snapshot that is available is the one with "yesterday's" date.
+> Format: "MMM-DD-YYYY"
+
+- Download the reth and cometbft snapshots with the following commands
 
 ``` sh
-wget https://storage.googleapis.com/compressed-always-available-snapshot/consensus-node/consensus-node_20241120_170857.tar.lz4 
-wget https://storage.googleapis.com/compressed-always-available-snapshot/poa-node/poa-rpc_20241120_170857.tar.lz4
+wget https://storage.googleapis.com/compressed-always-available-snapshot/consensus-node/consensus-node-Nov-21-2024.tar.lz4 
+wget https://storage.googleapis.com/compressed-always-available-snapshot/poa-node/poa-rpc-Nov-21-2024.tar.lz4
 ```
 
 - Decompress the file contents with
 ``` sh
-lz4 -d consensus-node_20241120_170857.tar.lz4 consensus-node_20241120_170857.tar
-lz4 -d poa-rpc_20241120_170857.tar.lz4 poa-rpc_20241120_170857.tar
+lz4 -d consensus-node-Nov-21-2024.tar.lz4 consensus-node-Nov-21-2024.tar
+lz4 -d poa-rpc-Nov-21-2024.tar.lz4 poa-rpc-Nov-21-2024.tar
 ```
 
 - Extract the file contents with
 ``` sh
-mkdir cometbft && tar -xvf consensus-node_20241120_170857.tar -C cometbft
-mkdir poa-rpc && tar -xvf poa-rpc_20241120_170857.tar -C poa-rpc
+mkdir cometbft && tar -xvf consensus-node-Nov-21-2024.tar -C cometbft
+mkdir poa-rpc && tar -xvf poa-rpc-Nov-21-2024.tar -C poa-rpc
 ```
 
 - Copy the file content to the appropriate Directory
