@@ -80,3 +80,39 @@ make start-testnet-rpc
 ## Check status of rpc node
 make status-testnet-rpc
 ```
+
+## Setup Testnet With CAAS (Compressed Always Available Snapshot)
+CAAS is a snapshot of the Reth and Comet database that is compressed and always available for download.
+We use LZ4 to compress the databases and store them in GCP bucket.
+
+### Prerequisites
+- lz4 
+- tar 
+
+### Steps
+- Download the reth and cometbft snapshots with
+
+``` sh
+wget https://storage.googleapis.com/compressed-always-available-snapshot/consensus-node/consensus-node_20241120_170857.tar.lz4 
+wget https://storage.googleapis.com/compressed-always-available-snapshot/poa-node/poa-rpc_20241120_170857.tar.lz4
+```
+
+- Decompress the file contents with
+``` sh
+lz4 -d consensus-node_20241120_170857.tar.lz4 consensus-node_20241120_170857.tar
+lz4 -d poa-rpc_20241120_170857.tar.lz4 poa-rpc_20241120_170857.tar
+```
+
+- Extract the file contents with
+``` sh
+mkdir cometbft && tar -xvf consensus-node_20241120_170857.tar -C cometbft
+mkdir poa-rpc && tar -xvf poa-rpc_20241120_170857.tar -C poa-rpc
+```
+
+- Copy the file content to the appropriate Directory
+``` sh
+cp -R poa-rpc/home/ubuntu/testnet_v1/poa-rpc/db/ poa-rpc/home/ubuntu/testnet_v1/poa-rpc/static_files/ ./poa-node-rpc
+cp -R cometbft/home/ubuntu/testnet_v1/consensus-node/data/ ./consensus-node
+```
+
+- Start the testnet with the snapshot data already in place
