@@ -76,7 +76,7 @@ docker-compose --env-file .bitcoin.env -f mutiny.docker-compose.yml up -d
 
 ## (Optional) Download a snapshot of the Reth and Comet database
 ## For instructions see below "Setup Testnet With CAAS".
-## This step is optional but will greatly reduce the syncing times as one only needs to sync the blocks of since midnight.
+## This step is optional but will greatly reduce the syncing times as one only needs to sync the blocks since midnight.
 
 ## Start the services
 make start-testnet-rpc
