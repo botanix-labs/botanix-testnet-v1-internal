@@ -39,8 +39,8 @@ services:
       - 30303:30303
       - 26658:26658
     volumes:
-      - ./config/reth:/reth/botanix_mainnet/config:rw
-      - ./data/reth:/reth/botanix_mainnet/data:rw
+      - ./config/reth:/reth/botanix_testnet/config:rw
+      - ./data/reth:/reth/botanix_testnet/data:rw
     restart: unless-stopped
     networks:
       - rpc_net
