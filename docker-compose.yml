@@ -1,59 +1,78 @@
 version: '3.7'
+
 services:
-  poa-node-rpc:
+  reth-rpc-node:
     env_file:
       - .bitcoin.env
-    container_name: poa-node-rpc
+    container_name: reth-rpc-node
     image: us-central1-docker.pkg.dev/botanix-391913/botanix-testnet-node-v1/botanix-poa-node
     command:
       - poa
-      - --federation-config-path=/reth/botanix_testnet/chain.toml
-      - --datadir=/reth/botanix_testnet
+      - --federation-config-path=/reth/botanix_testnet/config/chain.toml
+      - --datadir=/reth/botanix_testnet/data
       - --http
       - --http.addr=0.0.0.0
       - --http.port=8545
       - --http.api=debug,eth,net,trace,txpool,web3,rpc
       - --http.corsdomain=*
       - --ws
-      - --ws.addr=0.0.0.0
       - --ws.port=8546
       - -vvv
       - --bitcoind.url=${BITCOIND_HOST}
       - --bitcoind.username=${BITCOIND_USER}
       - --bitcoind.password=${BITCOIND_PASS}
-      - --p2p-secret-key=/reth/botanix_testnet/discovery-secret
-      - --port=30303
       - --btc-network=signet
+      - --p2p-secret-key=/reth/botanix_testnet/config/discovery-secret
+      - --port=30303
       - --metrics=0.0.0.0:9001
-      - --ipcdisable
       - --abci-port=26658
       - --abci-host=0.0.0.0
-      - --cometbft-rpc-port=8888
-      - --cometbft-rpc-host=consensus-node
+      - --cometbft-rpc-port=26657
+      - --cometbft-rpc-host=cometbft-consensus-node
+      - --sync.enable_state_sync
+      - --sync.enable_historical_sync
+      - --is-testnet
     ports:
       - 8545:8545
       - 8546:8546
       - 9001:9001
       - 30303:30303
       - 26658:26658
-      - 8888:8888
     volumes:
-      - ./poa-rpc:/reth/botanix_testnet:rw
-    restart: on-failure
+      - ./config/reth:/reth/botanix_mainnet/config:rw
+      - ./data/reth:/reth/botanix_mainnet/data:rw
+    restart: unless-stopped
+    networks:
+      - rpc_net
 
-  consensus-node:
-    container_name: consensus-node
-    image: us-central1-docker.pkg.dev/botanix-391913/botanix-testnet-cometbft/botanix-testnet-cometft:v4
+  cometbft-consensus-node:
+    container_name: cometbft-consensus-node
+    image: cometbft/cometbft:v1.0.0 
     ports:
-        - 26656:26656
-        - 26657:26657
-        - 26660:26660
+      - 26656:26656
+      - 26657:26657
+      - 26660:26660
     volumes:
-        - ./consensus-node:/cometbft:rw
-    restart: on-failure
+      - ./config/cometbft:/cometbft/config:rw
+      - ./data/cometbft:/cometbft/data:rw
+    restart: unless-stopped
+    user: root
+    command: >
+      node
+      --home=/cometbft
+      --proxy_app="reth-rpc-node:26658"
+      --moniker="INPUT_YOUR_MONIKER_HERE"
+      --key-type=secp256k1
+      --p2p.persistent_peers=${PERSISTENT_PEERS_LIST:-}
+      --p2p.laddr=${P2P_LADDR:-tcp://0.0.0.0:26656}
+      --rpc.laddr=${RPC_LADDR:-tcp://0.0.0.0:26657}
     environment:
-        - ALLOW_DUPLICATE_IP=TRUE
-        - LOG_LEVEL=DEBUG
-        - NODE_NAME=poa-node-rpc
-        - MONIKER=botanix-consensus-node
-        - PERSISTENT_PEERS=2561602572b54dbdcf44b02157ab62717c09d895@34.35.52.165:26656, dbd6bec8f89ec52232280d92f5b67069c5344095@35.201.136.224:26656, 45aabbb31b04257a86172e7002d25b2e923b896c@34.79.189.111:26656
+      - LOG_LEVEL=INFO
+      - CHAIN_ID=3636
+    networks:
+      - rpc_net
+
+networks:
+  rpc_net:
+    name: rpc_net
+    driver: bridge

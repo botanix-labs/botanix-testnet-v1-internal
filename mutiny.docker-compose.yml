@@ -8,15 +8,16 @@ x-logging:
     max-file: "3"
 
 services:
-  bitcoind:
-    container_name: "bitcoind"
+  mutiny-bitcoind:
+    container_name: "mutiny-bitcoind"
     image: us-central1-docker.pkg.dev/botanix-391913/botanix-mutinynet-bitcoind/botanix-mutinynet-bitcoind:v1
     user: "0:1000"
     logging: *default-logging
     restart: always
     stop_grace_period: 1m
     volumes:
-      - ./bitcoind/.bitcoin:/root/.bitcoin
+      - ./config/bitcoind/.bitcoin:/root/.bitcoin
+      - ./data/bitcoind:/root/.bitcoin/signet
     environment:
       UACOMMENT: $UACOMMENT
       BLOCKPRODUCTIONDELAY: $BLOCKPRODUCTIONDELAY
