@@ -1,9 +1,14 @@
-# botanix-testnet-v1-internal
-The purpose of this repository is for devs and non devs to carry out tests on the precompiled botanix artifacts. It contains an easy rpc node setup using docker-compose.
+# Botanix Testnet RPC Guide
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Lightweight testnet environment for Botanix development and testing using Docker.
+
+## Overview
+
+This repository provides an easy-to-use Docker setup for running Botanix testnet nodes. It supports both standard testnet and Mutinynet configurations.
 
 ## Prerequisites
-
-Before you begin, ensure you have the following installed:
 
 - `make`
 - `docker`
@@ -13,116 +18,133 @@ Before you begin, ensure you have the following installed:
 
 #### Linux
 
-1. **Install `make`**:
-    ```sh
-    sudo apt-get update
-    sudo apt-get install build-essential make
-    ```
+```sh
+# Install make
+sudo apt-get update
+sudo apt-get install build-essential make
 
-2. **Install Docker**:
-    ```sh
-    sudo apt-get update
-    sudo apt-get install \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release
+# Install Docker
+sudo apt-get install ca-certificates curl gnupg lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
 
-    sudo apt-get update
-    sudo apt-get install docker-ce docker-ce-cli containerd.io
-    ```
+# Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.10.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
-3. **Install Docker Compose**:
-    ```sh
-    sudo curl -L "https://github.com/docker/compose/releases/download/v2.10.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    ```
-
-4. **Add your user to the docker group (optional)**:
-    ```sh
-    sudo usermod -aG docker $USER
-    ```
+# Add your user to the docker group (optional)
+sudo usermod -aG docker $USER
+```
 
 #### macOS
 
-1. **Install `make`**:
-    ```sh
-    xcode-select --install
-    ```
+```sh
+# Install make
+xcode-select --install
 
-2. **Install Docker**:
-    - Download and install Docker Desktop for Mac from [Docker's official website](https://www.docker.com/products/docker-desktop).
+# Install Docker
+# Download and install Docker Desktop for Mac from https://www.docker.com/products/docker-desktop
+```
 
-3. **Install Docker Compose**:
-    - Docker Compose is included with Docker Desktop for Mac, so no additional installation is needed.
-
-
-## Getting Started
-
-### Clone the Repository
+## Quick Start
 
 ```sh
+# Clone the repository
 git clone https://github.com/botanix-labs/botanix-testnet-v1-internal.git
 cd botanix-testnet-v1-internal
 
-## Start the mutiny bitcoind instance and allow to sync fully 
-docker-compose --env-file .bitcoin.env -f mutiny.docker-compose.yml up -d 
+# Start Mutinynet
+make start-mutinynet
 
-## (Optional) Download a snapshot of the Reth and Comet database
-## For instructions see below "Setup Testnet With CAAS".
-## This step is optional but will greatly reduce the syncing times as one only needs to sync the blocks since midnight.
+# IMPORTANT: Wait for Mutinynet Bitcoin node to sync completely before proceeding!
+# You can check sync status with: docker logs -f botanix-mutiny-bitcoind
 
-## Start the services
-make start-testnet-rpc
+# OR start Standard Testnet
+make start-testnet
 
-## Check status of rpc node
-make status-testnet-rpc
+# Check node status
+make status-testnet
+# OR 
+make status-mutinynet
 ```
 
-## Setup Testnet With CAAS (Compressed Always Available Snapshot)
-CAAS is a snapshot of the Reth and Comet database that is compressed and always available for download.
-We use LZ4 to compress the databases and store them in GCP bucket.
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `make start-mutinynet` | Start the Mutinynet environment |
+| `make stop-mutinynet` | Stop the Mutinynet environment |
+| `make status-mutinynet` | Check Mutinynet node status |
+| `make start-testnet` | Start the standard testnet environment |
+| `make stop-testnet` | Stop the standard testnet environment |
+| `make status-testnet` | Check standard testnet node status |
+
+## Using CAAS (Compressed Always Available Snapshot)
+
+CAAS provides compressed snapshots of the Reth and CometBFT databases for quick testnet setup.
 
 ### Prerequisites
-- lz4 
-- tar 
 
-### Steps
+- `lz4`
+- `tar`
 
-> **Note**
-> In the following steps, you will have to replace the date at the end of the files with the date of the snapshot that you want. 
-> The latest snapshot that is available is the one with "yesterday's" date.
-> Format: "MMM-DD-YYYY"
+### Setup Steps
 
-- Download the reth and cometbft snapshots with the following commands
+1. Download the snapshots:
 
-``` sh
-wget https://storage.googleapis.com/compressed-always-available-snapshot/consensus-node/consensus-node-Nov-21-2024.tar.lz4 
-wget https://storage.googleapis.com/compressed-always-available-snapshot/poa-node/poa-rpc-Nov-21-2024.tar.lz4
+```sh
+curl -L https://storage.googleapis.com/compressed-always-available-snapshot/consensus-node/consensus-node-snapshot-May-28-2025-0729AM-EST.tar.lz4 -o consensus.tar.lz4
+curl -L https://storage.googleapis.com/compressed-always-available-snapshot/poa-node/poa-rpc-snapshot-May-28-2025-0729AM-EST.tar.lz4 -o poa.tar.lz4
 ```
 
-- Decompress the file contents with
-``` sh
-lz4 -d consensus-node-Nov-21-2024.tar.lz4 consensus-node-Nov-21-2024.tar
-lz4 -d poa-rpc-Nov-21-2024.tar.lz4 poa-rpc-Nov-21-2024.tar
+2. Decompress and unpack the files:
+
+```sh
+lz4 -dc consensus.tar.lz4 | tar -x --strip-components=3
+lz4 -dc poa.tar.lz4       | tar -x --strip-components=3
 ```
 
-- Extract the file contents with
-``` sh
-mkdir cometbft && tar -xvf consensus-node-Nov-21-2024.tar -C cometbft
-mkdir poa-rpc && tar -xvf poa-rpc-Nov-21-2024.tar -C poa-rpc
+3. Copy files to the appropriate directories:
+
+```sh
+cp -R home/ubuntu/testnet_v1/poa-rpc/db/ home/ubuntu/testnet_v1/poa-rpc/static_files/ ./data/reth
+cp -R home/ubuntu/testnet_v1/consensus-node/data/ ./data/cometbft
 ```
 
-- Copy the file content to the appropriate Directory
-``` sh
-cp -R poa-rpc/home/ubuntu/testnet_v1/poa-rpc/db/ poa-rpc/home/ubuntu/testnet_v1/poa-rpc/static_files/ ./poa-node-rpc
-cp -R cometbft/home/ubuntu/testnet_v1/consensus-node/data/ ./consensus-node
+4. Delete cometbft wal:
+```sh
+sudo rm -rf ./data/cometbft/cs.wal  # adjust if your paths are different
 ```
 
-- Start the testnet with the snapshot data already in place
+5. Start the testnet with the snapshot data in place:
+
+```sh
+make start-testnet
+```
+
+## Project Structure
+
+```sh
+├── config/                    # Configuration files
+│   ├── bitcoind/              # Mutiny signet bitcoin configuration
+│   ├── cometbft/              # CometBFT configuration
+│   └── reth/                  # Reth configuration
+├── data/                      # Data directories for nodes
+├── docker-compose.yml         
+├── mutiny.docker-compose.yml  
+└── Makefile                   
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
