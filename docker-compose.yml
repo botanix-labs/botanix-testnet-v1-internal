@@ -5,7 +5,7 @@ services:
     env_file:
       - .bitcoin.env
     container_name: reth-rpc-node
-    image: us-central1-docker.pkg.dev/botanix-391913/botanix-testnet-node-v1/botanix-poa-node
+    image: ghcr.io/botanix-labs/botanix-reth-node:latest
     command:
       - poa
       - --federation-config-path=/reth/botanix_testnet/config/chain.toml
